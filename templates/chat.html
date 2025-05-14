@@ -1,66 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Dental Chatbot</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <div class="chat-container">
-    <div class="chat-header">Dental Chatbot</div>
-    <div class="chat-box" id="chat-box">
-      <div class="message bot">Hello! How can I assist you with dental topics today?</div>
+    <div class="chat-container">
+        <header class="chat-header">
+            <h1><i class="fas fa-robot"></i> AI Assistant</h1>
+        </header>
+        
+        <div class="chat-messages" id="chat-messages">
+            <div class="message bot-message">
+                <div class="message-content">
+                    Hello! I'm your AI assistant. How can I help you today?
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input">
+            <form id="chat-form">
+                <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off">
+                <button type="submit"><i class="fas fa-paper-plane"></i></button>
+            </form>
+        </div>
     </div>
-    <div class="chat-input">
-      <input type="text" id="user-input" placeholder="Type your question..." autocomplete="off" />
-      <button id="send-btn">Send</button>
-    </div>
-  </div>
 
-  <script>
-    const sendBtn = document.getElementById('send-btn');
-    const userInput = document.getElementById('user-input');
-    const chatBox = document.getElementById('chat-box');
-
-    function appendMessage(sender, text, isError = false) {
-      const msgDiv = document.createElement('div');
-      msgDiv.className = `message ${sender}` + (isError ? " error" : "");
-      msgDiv.textContent = text;
-      chatBox.appendChild(msgDiv);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    sendBtn.addEventListener('click', async () => {
-      const message = userInput.value.trim();
-      if (message === "") return;
-
-      appendMessage('user', message);
-      userInput.value = "";
-
-      try {
-        const formData = new FormData();
-        formData.append("msg", message);
-
-        const response = await fetch("/get", {
-          method: "POST",
-          body: formData
+    <script>
+        document.getElementById('chat-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const userInput = document.getElementById('user-input');
+            const message = userInput.value.trim();
+            
+            if (message) {
+                // Add user message to chat
+                addMessage(message, 'user');
+                userInput.value = '';
+                
+                // Show typing indicator
+                const typingIndicator = addTypingIndicator();
+                
+                // Send message to server
+                fetch('/get', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'msg=' + encodeURIComponent(message)
+                })
+                .then(response => response.text())
+                .then(response => {
+                    // Remove typing indicator
+                    document.getElementById('chat-messages').removeChild(typingIndicator);
+                    
+                    // Add bot response
+                    addMessage(response, 'bot');
+                    
+                    // Scroll to bottom
+                    scrollToBottom();
+                })
+                .catch(error => {
+                    document.getElementById('chat-messages').removeChild(typingIndicator);
+                    addMessage("Sorry, I'm having trouble connecting. Please try again later.", 'bot');
+                    console.error('Error:', error);
+                });
+            }
         });
-
-        const data = await response.text();
-
-        // Detect error messages (starts with ⚠️ or similar)
-        const isError = data.toLowerCase().includes("error");
-        appendMessage('bot', data, isError);
-      } catch (err) {
-        appendMessage('bot', "⚠️ Error: Unable to connect to the server.", true);
-      }
-    });
-
-    userInput.addEventListener("keypress", function (e) {
-      if (e.key === "Enter") {
-        sendBtn.click();
-      }
-    });
-  </script>
+        
+        function addMessage(text, sender) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = text;
+            
+            messageDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(messageDiv);
+            
+            scrollToBottom();
+        }
+        
+        function addTypingIndicator() {
+            const messagesContainer = document.getElementById('chat-messages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot-message';
+            typingDiv.id = 'typing-indicator';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content typing';
+            
+            // Add three dots animation
+            contentDiv.innerHTML = '<span>.</span><span>.</span><span>.</span>';
+            
+            typingDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(typingDiv);
+            
+            scrollToBottom();
+            return typingDiv;
+        }
+        
+        function scrollToBottom() {
+            const messagesContainer = document.getElementById('chat-messages');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    </script>
 </body>
 </html>
