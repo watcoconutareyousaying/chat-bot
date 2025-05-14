@@ -23,9 +23,10 @@
         
         <div class="chat-input">
             <form id="chat-form">
-                <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off">
+                <input type="text" id="user-input" name="msg" placeholder="Type your message here..." autocomplete="off" required>
                 <button type="submit"><i class="fas fa-paper-plane"></i></button>
             </form>
+            <div id="response"></div>
         </div>
     </div>
 
@@ -36,14 +37,11 @@
             const message = userInput.value.trim();
             
             if (message) {
-                // Add user message to chat
                 addMessage(message, 'user');
                 userInput.value = '';
-                
-                // Show typing indicator
+
                 const typingIndicator = addTypingIndicator();
-                
-                // Send message to server
+
                 fetch('/get', {
                     method: 'POST',
                     headers: {
@@ -53,13 +51,8 @@
                 })
                 .then(response => response.text())
                 .then(response => {
-                    // Remove typing indicator
                     document.getElementById('chat-messages').removeChild(typingIndicator);
-                    
-                    // Add bot response
                     addMessage(response, 'bot');
-                    
-                    // Scroll to bottom
                     scrollToBottom();
                 })
                 .catch(error => {
@@ -69,41 +62,39 @@
                 });
             }
         });
-        
+
         function addMessage(text, sender) {
             const messagesContainer = document.getElementById('chat-messages');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}-message`;
-            
+
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
-            contentDiv.textContent = text;
-            
+            contentDiv.innerHTML = text;  // allow HTML formatting if needed
+
             messageDiv.appendChild(contentDiv);
             messagesContainer.appendChild(messageDiv);
-            
+
             scrollToBottom();
         }
-        
+
         function addTypingIndicator() {
             const messagesContainer = document.getElementById('chat-messages');
             const typingDiv = document.createElement('div');
             typingDiv.className = 'message bot-message';
             typingDiv.id = 'typing-indicator';
-            
+
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content typing';
-            
-            // Add three dots animation
-            contentDiv.innerHTML = '<span>.</span><span>.</span><span>.</span>';
-            
+            contentDiv.innerHTML = '<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
+
             typingDiv.appendChild(contentDiv);
             messagesContainer.appendChild(typingDiv);
-            
+
             scrollToBottom();
             return typingDiv;
         }
-        
+
         function scrollToBottom() {
             const messagesContainer = document.getElementById('chat-messages');
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
