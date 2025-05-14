@@ -30,6 +30,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         document.getElementById('chat-form').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -70,7 +71,7 @@
 
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
-            contentDiv.innerHTML = text;  // allow HTML formatting if needed
+            contentDiv.innerHTML = marked.parse(text);  // allow HTML formatting if needed
 
             messageDiv.appendChild(contentDiv);
             messagesContainer.appendChild(messageDiv);

@@ -171,3 +171,14 @@ body {
         max-width: 85%;
     }
 }
+
+.message-content ul {
+    padding-left: 20px; /* Indents the bullet list properly */
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.message-content li {
+    margin-bottom: 6px; /* Spacing between list items */
+    line-height: 1.6;
+}
